@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from pylab import plot, show, savefig, xlim, figure, \
                 hold, ylim, legend, boxplot, setp, axes
 import numpy as np
+from sklearn import tree
 
 INPUT_FILE = '../data/LoanStats3a.csv'
 COLUMNS_TO_KEEP = [
@@ -65,6 +66,17 @@ def main():
 	print p_by_purpose.describe()
 
 	p_by_purpose.boxplot()
+
+	data['int_rate'] = [float(per.strip('%'))/100.0 for per in data['int_rate']]
+	X = data[['int_rate']]
+	Y = data['charged_off']
+	clf = tree.DecisionTreeClassifier()
+	clf = clf.fit(X, Y)
+
+	import graphviz 
+	dot_data = tree.export_graphviz(clf, out_file=None) 
+	graph = graphviz.Source(dot_data) 
+	graph.render("loan") 
 
 	# print p_charged_off
 	# print type(p_charged_off)
