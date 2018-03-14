@@ -6,6 +6,7 @@ from pylab import plot, show, savefig, xlim, figure, \
                 hold, ylim, legend, boxplot, setp, axes
 import numpy as np
 from sklearn import tree
+from sklearn.preprocessing import LabelEncoder
 
 INPUT_FILE = '../data/LoanStats3a.csv'
 COLUMNS_TO_KEEP = [
@@ -68,13 +69,27 @@ def main():
 	p_by_purpose.boxplot()
 
 	data['int_rate'] = [float(per.strip('%'))/100.0 for per in data['int_rate']]
-	X = data[['int_rate']]
+	data['purp_business'] = [x == 'small_business' for x in data['purpose']]
+	data['purp_car'] = [x == 'car' for x in data['purpose']]
+	# lb = LabelEncoder()
+	# data['encoded'] = lb.fit_transform(data.purpose)
+	FEATURE_NAMES = ['annual_inc', 'dti', 'purp_business', 'purp_car']
+
+	X = data[FEATURE_NAMES]
 	Y = data['charged_off']
-	clf = tree.DecisionTreeClassifier()
+	clf = tree.DecisionTreeClassifier(max_depth=3)
 	clf = clf.fit(X, Y)
 
+	print clf.predict_proba([[120000, 7, 0, 1]])
+
 	import graphviz 
-	dot_data = tree.export_graphviz(clf, out_file=None) 
+	dot_data = tree.export_graphviz(
+		clf,
+		out_file=None,
+		feature_names=FEATURE_NAMES,
+		class_names=True,
+		proportion=True
+	) 
 	graph = graphviz.Source(dot_data) 
 	graph.render("loan") 
 
